@@ -36,6 +36,9 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
+# Scratch / convenience files
+dev
+
 # OS
 .DS_Store
 Thumbs.db
