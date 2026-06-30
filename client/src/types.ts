@@ -1,4 +1,4 @@
-export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama'
+export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama' | 'deepseek' | 'mimo' | 'glm'
 
 export interface ModelConfig {
   id: string
@@ -8,6 +8,7 @@ export interface ModelConfig {
   apiKey: string
   baseUrl?: string
   color: string
+  role: 'debater' | 'judge'
 }
 
 export interface DebateMessage {
@@ -19,15 +20,19 @@ export interface DebateMessage {
   timestamp: number
 }
 
-export type DebateStatus = 'idle' | 'running' | 'paused' | 'complete'
+export type DebateStatus = 'idle' | 'running' | 'judging' | 'complete'
 
 export interface DebateState {
   topic: string
   models: ModelConfig[]
   messages: DebateMessage[]
   round: number
+  totalRounds: number
   status: DebateStatus
   error: string | null
+  activeModelId: string | null
+  verdict: string | null
+  judgeName: string | null
 }
 
 export interface GlobalSettings {

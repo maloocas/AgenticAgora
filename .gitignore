@@ -5,10 +5,18 @@ node_modules/
 dist/
 dist-ssr/
 
-# Env files
+# Env files (all variants — contains API keys, never commit)
 .env
-.env.local
-.env.*.local
+.env.*
+.envrc
+
+# Config files that may contain secrets
+*.pem
+*.key
+*.crt
+*.p12
+credentials.json
+service-account.json
 
 # Logs
 logs

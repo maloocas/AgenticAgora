@@ -11,7 +11,30 @@ const PROVIDERS: { value: Provider; label: string }[] = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'openrouter', label: 'OpenRouter' },
   { value: 'ollama', label: 'Ollama' },
+  { value: 'deepseek', label: 'DeepSeek' },
+  { value: 'mimo', label: 'Xiaomi Mimo' },
+  { value: 'glm', label: 'GLM (ZhipuAI)' },
 ]
+
+const MODEL_PLACEHOLDERS: Record<Provider, string> = {
+  anthropic: 'claude-sonnet-4-20250514',
+  openai: 'gpt-4o',
+  openrouter: 'gpt-4o',
+  ollama: 'gpt-4o',
+  deepseek: 'deepseek-chat',
+  mimo: 'mimo',
+  glm: 'glm-4-flash',
+}
+
+const BASE_URL_PLACEHOLDERS: Record<Provider, string> = {
+  anthropic: '',
+  openai: 'https://api.openai.com/v1',
+  openrouter: '',
+  ollama: 'http://localhost:11434',
+  deepseek: 'https://api.deepseek.com/v1',
+  mimo: 'https://api.xiaomi.com/v1',
+  glm: 'https://open.bigmodel.cn/api/paas/v4',
+}
 
 export function SettingsPanel({ settings, onChange, onClose }: Props) {
   return (
@@ -49,7 +72,7 @@ export function SettingsPanel({ settings, onChange, onClose }: Props) {
               type="text"
               value={settings.model}
               onChange={(e) => onChange({ ...settings, model: e.target.value })}
-              placeholder={settings.provider === 'anthropic' ? 'claude-sonnet-4-20250514' : 'gpt-4o'}
+              placeholder={MODEL_PLACEHOLDERS[settings.provider]}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
             />
           </div>
@@ -73,7 +96,7 @@ export function SettingsPanel({ settings, onChange, onClose }: Props) {
               type="text"
               value={settings.baseUrl}
               onChange={(e) => onChange({ ...settings, baseUrl: e.target.value })}
-              placeholder={settings.provider === 'ollama' ? 'http://localhost:11434' : 'https://api.openai.com/v1'}
+              placeholder={BASE_URL_PLACEHOLDERS[settings.provider]}
               className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
             />
           </div>

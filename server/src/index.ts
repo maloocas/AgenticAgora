@@ -5,7 +5,9 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama'
+type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama' | 'deepseek' | 'mimo' | 'glm'
+
+const sanitizeHeader = (v: string) => v.replace(/[^\x20-\x7E]/g, '')
 
 interface ChatRequest {
   provider: Provider
@@ -22,13 +24,12 @@ async function callAnthropic(req: ChatRequest): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': req.apiKey,
+      'x-api-key': sanitizeHeader(req.apiKey),
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
       model: req.model,
       max_tokens: req.maxTokens ?? 2048,
-      temperature: req.temperature ?? 0.7,
       system: req.messages.find((m) => m.role === 'system')?.content,
       messages: req.messages.filter((m) => m.role !== 'system').map((m) => ({
         role: m.role,
@@ -52,7 +53,7 @@ async function callOpenAI(req: ChatRequest): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${req.apiKey}`,
+      Authorization: `Bearer ${sanitizeHeader(req.apiKey)}`,
     },
     body: JSON.stringify({
       model: req.model,
@@ -68,7 +69,12 @@ async function callOpenAI(req: ChatRequest): Promise<string> {
   }
 
   const data = await res.json() as any
-  return data.choices[0].message.content
+  const content = data.choices?.[0]?.message?.content
+  if (!content || !content.trim()) {
+    console.error('Empty response:', JSON.stringify(data).slice(0, 500))
+    throw new Error('Provider returned empty response')
+  }
+  return content
 }
 
 async function callOpenRouter(req: ChatRequest): Promise<string> {
@@ -76,7 +82,7 @@ async function callOpenRouter(req: ChatRequest): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${req.apiKey}`,
+      Authorization: `Bearer ${sanitizeHeader(req.apiKey)}`,
     },
     body: JSON.stringify({
       model: req.model,
@@ -119,11 +125,38 @@ async function callOllama(req: ChatRequest): Promise<string> {
   return data.message.content
 }
 
+async function callDeepSeek(req: ChatRequest): Promise<string> {
+  try {
+    return await callOpenAI({ ...req, baseUrl: req.baseUrl || 'https://api.deepseek.com/v1' })
+  } catch (err: any) {
+    throw new Error(`DeepSeek: ${err.message}`)
+  }
+}
+
+async function callMimo(req: ChatRequest): Promise<string> {
+  try {
+    return await callOpenAI({ ...req, baseUrl: req.baseUrl || 'https://api.xiaomi.com/v1' })
+  } catch (err: any) {
+    throw new Error(`Mimo: ${err.message}`)
+  }
+}
+
+async function callGLM(req: ChatRequest): Promise<string> {
+  try {
+    return await callOpenAI({ ...req, baseUrl: req.baseUrl || 'https://open.bigmodel.cn/api/paas/v4' })
+  } catch (err: any) {
+    throw new Error(`GLM: ${err.message}`)
+  }
+}
+
 const PROVIDERS: Record<Provider, (req: ChatRequest) => Promise<string>> = {
   anthropic: callAnthropic,
   openai: callOpenAI,
   openrouter: callOpenRouter,
   ollama: callOllama,
+  deepseek: callDeepSeek,
+  mimo: callMimo,
+  glm: callGLM,
 }
 
 app.post('/api/chat', async (req, res) => {
@@ -140,15 +173,17 @@ app.post('/api/chat', async (req, res) => {
       return
     }
 
+    console.log(`[${body.provider}] calling ${body.model}...`)
     const content = await PROVIDERS[body.provider](body)
     res.json({ content })
   } catch (err: any) {
-    console.error('Chat error:', err.message)
-    res.status(500).json({ error: err.message })
+    const message = err?.message || err?.toString() || 'Unknown server error'
+    console.error('Chat error:', message, err?.cause || '')
+    res.status(500).json({ error: message })
   }
 })
 
 const PORT = 3001
 app.listen(PORT, () => {
-  console.log(`eastside philosophy server running on http://localhost:${PORT}`)
+  console.log(`AgenticAgora server running on http://localhost:${PORT}`)
 })

@@ -15,7 +15,20 @@ const PROVIDERS: { value: Provider; label: string }[] = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'openrouter', label: 'OpenRouter' },
   { value: 'ollama', label: 'Ollama' },
+  { value: 'deepseek', label: 'DeepSeek' },
+  { value: 'mimo', label: 'Xiaomi Mimo' },
+  { value: 'glm', label: 'GLM (ZhipuAI)' },
 ]
+
+const BASE_URL_PLACEHOLDERS: Record<Provider, string> = {
+  anthropic: '',
+  openai: '',
+  openrouter: '',
+  ollama: 'http://localhost:11434',
+  deepseek: 'https://api.deepseek.com/v1',
+  mimo: 'https://api.xiaomi.com/v1',
+  glm: 'https://open.bigmodel.cn/api/paas/v4',
+}
 
 function emptyModel(defaults: GlobalSettings, color: string): ModelConfig {
   return {
@@ -26,6 +39,7 @@ function emptyModel(defaults: GlobalSettings, color: string): ModelConfig {
     apiKey: defaults.apiKey,
     baseUrl: defaults.baseUrl || undefined,
     color,
+    role: 'debater',
   }
 }
 
@@ -63,8 +77,19 @@ function ModelForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <div>
+          <label className="block text-xs text-zinc-500 mb-0.5">Role</label>
+          <select
+            value={model.role}
+            onChange={(e) => onChange({ ...model, role: e.target.value as ModelConfig['role'] })}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-zinc-500"
+          >
+            <option value="debater">Debater</option>
+            <option value="judge">Judge</option>
+          </select>
+        </div>
+        <div className="col-span-2">
           <label className="block text-xs text-zinc-500 mb-0.5">Provider</label>
           <select
             value={model.provider}
@@ -76,16 +101,17 @@ function ModelForm({
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-xs text-zinc-500 mb-0.5">Model ID</label>
-          <input
-            type="text"
-            value={model.model}
-            onChange={(e) => onChange({ ...model, model: e.target.value })}
-            placeholder="gpt-4o"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
-          />
-        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs text-zinc-500 mb-0.5">Model ID</label>
+        <input
+          type="text"
+          value={model.model}
+          onChange={(e) => onChange({ ...model, model: e.target.value })}
+          placeholder="gpt-4o"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
+        />
       </div>
 
       <div>
@@ -108,7 +134,7 @@ function ModelForm({
             type="text"
             value={model.baseUrl ?? ''}
             onChange={(e) => onChange({ ...model, baseUrl: e.target.value || undefined })}
-            placeholder={model.provider === 'ollama' ? 'http://localhost:11434' : ''}
+            placeholder={BASE_URL_PLACEHOLDERS[model.provider]}
             className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-500"
           />
         </div>
@@ -162,7 +188,7 @@ export function ModelConfigPanel({ models, defaultSettings, nextColor, onAdd, on
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {models.length === 0 && !newModel && (
             <p className="text-sm text-zinc-500 text-center py-8">
-              No models yet. Add at least two models to start a debate.
+              No models yet. Add at least two debaters to start a debate.
             </p>
           )}
 

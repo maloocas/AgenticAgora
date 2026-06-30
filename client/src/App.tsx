@@ -8,7 +8,7 @@ import { ModelConfigPanel } from './components/ModelConfigPanel'
 
 function loadSettings(): GlobalSettings {
   try {
-    const raw = localStorage.getItem('eastside-settings')
+    const raw = localStorage.getItem('agenticagora-settings')
     if (raw) return JSON.parse(raw)
   } catch { /* ignore */ }
   return { provider: 'openai', model: 'gpt-4o', apiKey: '', baseUrl: '' }
@@ -16,7 +16,7 @@ function loadSettings(): GlobalSettings {
 
 function loadModels(): ModelConfig[] {
   try {
-    const raw = localStorage.getItem('eastside-models')
+    const raw = localStorage.getItem('agenticagora-models')
     if (raw) return JSON.parse(raw)
   } catch { /* ignore */ }
   return []
@@ -35,11 +35,11 @@ function App() {
   const { state, startDebate, stopDebate, reset } = useDebate()
 
   useEffect(() => {
-    localStorage.setItem('eastside-settings', JSON.stringify(settings))
+    localStorage.setItem('agenticagora-settings', JSON.stringify(settings))
   }, [settings])
 
   useEffect(() => {
-    localStorage.setItem('eastside-models', JSON.stringify(models))
+    localStorage.setItem('agenticagora-models', JSON.stringify(models))
   }, [models])
 
   const addModel = useCallback((model: ModelConfig) => {
@@ -62,8 +62,10 @@ function App() {
   const handleStart = useCallback(
     (topic: string, selectedIds: string[]) => {
       const selected = models.filter((m) => selectedIds.includes(m.id))
+      const judge = models.find((m) => m.role === 'judge')
+      const allModels = judge ? [...selected, judge] : selected
       if (selected.length < 2) return
-      startDebate(topic, selected)
+      startDebate(topic, allModels)
     },
     [models, startDebate]
   )
@@ -73,7 +75,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-zinc-800 px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="text-lg font-semibold tracking-tight">eastside philosophy</h1>
+        <h1 className="text-lg font-semibold tracking-tight">AgenticAgora</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowModelConfig(true)}

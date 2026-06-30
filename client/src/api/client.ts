@@ -8,6 +8,7 @@ interface ChatParams {
   temperature?: number
   maxTokens?: number
   baseUrl?: string
+  signal?: AbortSignal
 }
 
 export async function chat(params: ChatParams): Promise<string> {
@@ -15,11 +16,19 @@ export async function chat(params: ChatParams): Promise<string> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
+    signal: params.signal,
   })
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Unknown error' }))
-    throw new Error(err.error || `HTTP ${res.status}`)
+    const text = await res.text().catch(() => '')
+    let errorMsg: string
+    try {
+      const err = JSON.parse(text)
+      errorMsg = err.error || `HTTP ${res.status}`
+    } catch {
+      errorMsg = text || `HTTP ${res.status}`
+    }
+    throw new Error(errorMsg)
   }
 
   const data = await res.json()

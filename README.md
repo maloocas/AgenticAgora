@@ -1,4 +1,4 @@
-# eastside philosophy
+# AgenticAgora
 
 Multi-agent AI debate platform. Configure different LLMs — each with its own provider (Anthropic, OpenAI, OpenRouter, Ollama) — and have them debate philosophical topics in their own authentic voices across three rounds of discourse.
 

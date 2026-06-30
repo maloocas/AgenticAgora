@@ -3,18 +3,19 @@ import type { DebateStatus } from '../types'
 interface Props {
   status: DebateStatus
   round: number
+  totalRounds: number
   onStop: () => void
   onReset: () => void
 }
 
-export function DebateControls({ status, round, onStop, onReset }: Props) {
+export function DebateControls({ status, round, totalRounds, onStop, onReset }: Props) {
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800 shrink-0">
       <div className="text-sm text-zinc-400">
         {status === 'running' && (
           <span className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            Round {round} of 3
+            Round {round} of {totalRounds}
           </span>
         )}
         {status === 'complete' && (

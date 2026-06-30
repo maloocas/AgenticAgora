@@ -8,8 +8,10 @@ interface Props {
 
 export function TopicInput({ models, onStart }: Props) {
   const [topic, setTopic] = useState('')
+  const debaters = models.filter((m) => m.role !== 'judge')
+  const judge = models.find((m) => m.role === 'judge')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    new Set(models.map((m) => m.id))
+    new Set(debaters.map((m) => m.id))
   )
 
   const toggleModel = (id: string) => {
@@ -31,16 +33,16 @@ export function TopicInput({ models, onStart }: Props) {
 
   const canStart = topic.trim().length > 0 && selectedIds.size >= 2
 
-  if (models.length === 0) {
+  if (debaters.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <h2 className="text-xl font-semibold mb-2">No models configured</h2>
+          <h2 className="text-xl font-semibold mb-2">No debaters configured</h2>
           <p className="text-sm text-zinc-400 mb-4">
-            Add LLM models in the Models panel to start a debate. Each model represents a different AI debating in its own voice.
+            Add LLM models in the Models panel. You need at least two debaters to start a debate.
           </p>
           <p className="text-xs text-zinc-500">
-            Click &ldquo;Models&rdquo; in the top bar to configure.
+            Click &ldquo;Models&rdquo; in the top bar to configure. Set a model&rsquo;s role to &ldquo;Judge&rdquo; to add a verdict at the end.
           </p>
         </div>
       </div>
@@ -70,7 +72,7 @@ export function TopicInput({ models, onStart }: Props) {
         />
 
         <div className="flex flex-wrap gap-2 my-4">
-          {models.map((m) => (
+          {debaters.map((m) => (
             <button
               key={m.id}
               onClick={() => toggleModel(m.id)}
@@ -85,6 +87,12 @@ export function TopicInput({ models, onStart }: Props) {
             </button>
           ))}
         </div>
+
+        {judge && (
+          <p className="text-xs text-zinc-500 text-center mb-4">
+            Judge: <span style={{ color: judge.color }}>{judge.name}</span>
+          </p>
+        )}
 
         <button
           onClick={handleStart}
